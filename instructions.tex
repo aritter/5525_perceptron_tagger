@@ -1,0 +1,113 @@
+\documentclass[12pt, letterpaper]{article}
+\usepackage[utf8]{inputenc}
+
+\makeatletter
+\newcommand{\@BIBLABEL}{\@emptybiblabel}
+\newcommand{\@emptybiblabel}[1]{}
+\makeatother
+\usepackage[hidelinks]{hyperref}
+ 
+\begin{document}
+\title{CSE 5525 Homework 3: CNNs and Tagging}
+\author{Alan Ritter}
+\date{}
+\maketitle
+
+\section{Convolutional Neural Networks for Text Classification (5 points)}
+For the first part of this assignment, you will implement a convolutional neural network for sentiment classification using the IMDB movie review dataset provided in homework \#2.
+First, copy the starter code from the file {\tt FFNN.py} to a new file {\tt CNN.py}, and use this as a starting point.  Create a network containing an embedding layer, a single
+convolutional layer, followed by a pooling layer that does max-pooling over time, a nonlinearity (e.g, ReLU or Tanh) a linear layer and a softmax.  You should make use of unigram, bigram and trigram filters.
+To do this, you should make use
+of the following classes in Pytorch (see documentaiton on the Pytorch Website):
+\begin{itemize}
+  \item {\tt nn.Conv1d}
+  \item {\tt nn.MaxPool1d}
+\end{itemize}
+
+Your report should clearly explain hyperparameters you used (embedding dimensions, number of filters, etc).  You should report performance on the development and test sets (aclImdb\_small) for both your CNN
+and feedforward neural network implementations.
+
+{\it hints:} You will most likely need to use the functions {\tt torch.unsqueeze} and {\tt torch.view}.  You probably also need to use at least 100-200 convolutional filters of each size in order to get good performance.
+
+\section{Structured Perceptron Tagger (15 points)}
+In the second part of the assignment you will implement the structured perceptron and Viterbi algorithms for part-of-speech
+tagging.  Then you will experiment with your trained models on a small dataset of
+tweets annotated with parts-of-speech and named entities.  These experiments will explore the question of how well part
+of speech taggers perform when applied to domains other than for which they were trained.  For example,
+how well does a Wall Street Journal trained part-of-speech tagger perform when applied on Twitter?
+
+We provide you with starter Python code to help read in the data and evaluate the results of your model's predictions.
+You are \emph{strongly} encouraged to make use of the provided code.  
+If you really prefer to implement everything from scratch for some reason, please talk to the instructor first.  Your submitted code
+should run on the command line in a unix-like environment (e.g. Linux, OSX, Cygwin).
+
+The experiments required to complete the assignment will take some
+time to run, so it is highly recommended to start early.  We recommend you read through this entire document and
+run the sample code before getting started.
+
+We have provided an evaluation script to train your models and generate predictions on the test data as follows:
+\begin{small}
+\begin{verbatim}
+> #Trains a part-of-speech tagger on the provided Twitter training set
+> bash eval.sh twitter
+> #Trains a part-of-speech tagger on the provided penn treebank data
+> bash eval.sh ptb       
+#Trains a part-of-speech tagger on the provided IRC chat data
+> bash eval.sh nps          
+\end{verbatim}
+\end{small}
+
+Your model's predictions on the test data will be output into the directory, {\tt eval/}.
+You can check the accuracy of your model on the test data by using the provided scripts
+{\tt accuracy.py} for POS-tagging and the Perl script {\tt conlleval.pl} for named entity
+recognition.
+
+When you first run the starter code, the tagger will always predict every word is a noun.  You will need to
+implement the viterbi algorithm for decoding in addition to parameter updates analogous to the
+perceptron algorithm in Homework \#2. 
+
+\subsection*{Word's Most Frequent Tag Baseline (2 points)}
+Before getting started with implementing the perceptron tagger, write a simple program to implement the following baseline.
+First count the number of times each word occurs with each tag in the training dataset ({\tt data/twitter\_train\_universal.txt}).
+Now generate an output file (using the same format as the training data) that predicts the tag of each word using the
+following heuristic: simply tag each word in the test dataset ({\tt data/twitter\_test\_universal.txt}) with the tag that appears most frequently in the
+training dataset (breaking ties arbitrarily).  Tag all the unseen words in the test set as nouns.
+Report your accuracy on the test data using the provided script like so:
+
+\begin{verbatim}
+> python accuracy.py mft_baseline.out data/twitter_test_universal.txt
+\end{verbatim}
+
+\subsection*{Viterbi Algorithm (6 points)}
+Implement the Viterbi Algorithm for a bigram perceptron tagger.  The provided code in {\tt Data.py} will read in the provided training data.
+You should make use of log-scores (unnormalized log probabilities) - each multiplication in Viterbi should
+be replaced with addition, and unnormalized probabilities are simply dot products of feature vectors and weights.
+Note: you will need to complete the next part of the assignment before you can test if your implementation is properly working.
+
+The methods you will need to implement is {\tt ViterbiTagger.Viterbi}.  Before you do this, the classifier always predicts 'Noun'.
+
+\subsection*{Structured Perceptron (4 points)}
+Next, implement the structured perceptron algorithm.  For this you will need to modify {\tt Tagger.Train}.  Include
+parameter averaging as in Homework \#2.
+Report your performance (accuracy) training and testing on the Twitter data.
+
+\subsection*{Cross-Domain Experiments (2 points)}
+Next, try training your POS tagger in each of the following scenarios and report accuracy:
+
+\begin{itemize}
+  \item Train on the provided penn-treebank data and test on Twitter.
+  \item Train on the provided IRC-chat data and test on Twitter.
+  \item Train on all the data (irc + ptb + twitter) and test on Twitter.
+\end{itemize}
+
+What can you say about the performance of part-of-speech taggers when they are applied on text outside their
+training domain?
+
+\subsection*{Extra Credit: Named Entity Recognition (2 points)}
+Train your tagger on the provided named entity recognition dataset {\tt twitter\_ner\_train.txt} and report
+precision, recall and $F_1$ on {\tt twitter\_ner\_test.txt} using the provided script {\tt conlleval.pl}.
+Next, add additional features to the tagger specifically for the named entity recognition task, and report performance.
+Commonly used features for named entity recognition include lists of first and last names.\footnote{\url{http://www.census.gov/topics/population/genealogy/data/1990\_census/1990\_census\_namefiles.html}}.
+Lists of companies, products, etc... can be scraped from various places on the web, such as Wikipedia.\footnote{\url{https://en.wikipedia.org/wiki/List\_of\_companies\_of\_the\_United\_States}}.
+
+\end{document}
